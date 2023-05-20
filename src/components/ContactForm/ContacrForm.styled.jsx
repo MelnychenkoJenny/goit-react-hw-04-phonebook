@@ -1,5 +1,4 @@
 import styled, { keyframes } from 'styled-components';
-import { Form, Field, ErrorMessage } from 'formik';
 
 const showUp = keyframes`
   from {
@@ -12,7 +11,7 @@ const showUp = keyframes`
   }
 `;
 
-export const FormStyle = styled(Form)`
+export const FormStyle = styled.form`
   background-color: ${({ theme: { colors } }) => colors.bgAlfa};
   padding: 20px;
   border-radius: 10px;
@@ -35,7 +34,7 @@ export const InputGroup = styled.div`
   }
 `;
 
-export const InputName = styled(Field)`
+export const InputName = styled.input`
   width: 230px;
   padding: 5px 8px;
   outline: none;
@@ -94,7 +93,7 @@ export const Button = styled.button`
   }
 `;
 
-export const ErrorMessageStyle = styled(ErrorMessage)`
+export const ErrorMessageStyle = styled.div`
   width: 230px;
   text-align: center;
   color: ${({ theme: { colors } }) => colors.red};

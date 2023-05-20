@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import initialContacts from 'components/data/contacts.json';
 import {
@@ -12,32 +12,23 @@ import {
 import { ContactForm } from 'components/ContactForm';
 import { Filter } from 'components/Filter';
 import { Contacts } from 'components/Contacts';
-
+import { formattedNumber } from 'components/calc/numberFormatted';
 
 const STORAGE_KEY_CONTACTS = 'contacts';
 
-export class App extends Component {
-  state = {
-    contacts: initialContacts,
-    filter: '',
-  };
-  componentDidMount() {
-    const contacts = localStorage.getItem(STORAGE_KEY_CONTACTS);
-    const parsedContacts = JSON.parse(contacts);
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    }
-  }
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem(STORAGE_KEY_CONTACTS)) ?? initialContacts
+  );
+  const [filter, setFilter] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem(STORAGE_KEY_CONTACTS, JSON.stringify(this.state.contacts));
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_CONTACTS, JSON.stringify(contacts));
+  }, [contacts]);
 
-  addContact = (name, number) => {
-    const formattedNumber = this.formattedNumber(number);
-    const repeatName = this.state.contacts.some(
+  const addContact = (name, number) => {
+    const formatted = formattedNumber(number);
+    const repeatName = contacts.some(
       el => el.name.toLowerCase() === name.toLowerCase()
     );
     if (repeatName) {
@@ -46,66 +37,50 @@ export class App extends Component {
     const contact = {
       id: nanoid(),
       name,
-      number: formattedNumber,
+      number: formatted,
     };
-    this.setState(({ contacts }) => ({ contacts: [contact, ...contacts] }));
+    setContacts(prevContacts => [contact, ...prevContacts]);
   };
 
-  changeFilter = event => {
-    this.setState({ filter: event.currentTarget.value });
+  const changeFilter = event => {
+    setFilter(event.currentTarget.value);
   };
 
-  getVisibleContacts = () => {
-    const { contacts, filter } = this.state;
+  const getVisibleContacts = () => {
     const normalizedFilter = filter.toLowerCase();
-
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
-  };
-
-  formattedNumber = number => {
-    let formattedNumber = number.substring(0, 3) + '-';
-    for (let i = 3; i < number.length; i += 1) {
-      if ((i - 3) % 2 === 0 && i !== 3) {
-        formattedNumber += '-';
-      }
-      formattedNumber += number[i];
-    }
-    return formattedNumber;
-  };
-
-  render() {
-    const { contacts, filter } = this.state;
-    const visibleContacts = this.getVisibleContacts();
-
-    return (
-      <Container>
-        <MainTitle>Телефонна книга</MainTitle>
-        <ContactForm onSubmit={this.addContact} />
-        <ContactsContainer>
-          <Title>Мої контакти</Title>
-          <AmountContacts>
-            Загальна кількість контактів: {contacts.length}
-          </AmountContacts>
-          <Filter value={filter} onChange={this.changeFilter} />
-
-          {visibleContacts.length ? (
-            <Contacts
-              contacts={visibleContacts}
-              onDeleteContact={this.deleteContact}
-            />
-          ) : (
-            <EmptyText>Не знайдено жодного контакту</EmptyText>
-          )}
-        </ContactsContainer>
-      </Container>
+  const deleteContact = contactId => {
+    setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== contactId)
     );
-  }
-}
+  };
+
+  const visibleContacts = getVisibleContacts();
+
+  return (
+    <Container>
+      <MainTitle>Телефонна книга</MainTitle>
+      <ContactForm addContact={addContact} />
+      <ContactsContainer>
+        <Title>Мої контакти</Title>
+        <AmountContacts>
+          Загальна кількість контактів: {contacts.length}
+        </AmountContacts>
+        <Filter value={filter} onChange={changeFilter} />
+
+        {visibleContacts.length ? (
+          <Contacts
+            contacts={visibleContacts}
+            onDeleteContact={deleteContact}
+          />
+        ) : (
+          <EmptyText>Не знайдено жодного контакту</EmptyText>
+        )}
+      </ContactsContainer>
+    </Container>
+  );
+};
