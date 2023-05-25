@@ -35,7 +35,7 @@ export const ContactForm = ({ addContact }) => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data, e) => {
+  const onSubmit = (data) => {
     addContact(data.name, data.number);
     reset();
   };
